@@ -35,11 +35,15 @@ import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.packet.Ethernet;
 
+import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFFlowMod;
+import org.openflow.protocol.action.OFActionType;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPacketIn;
 import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.Wildcards;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.util.U16;
@@ -55,7 +59,7 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
     
     protected IFloodlightProviderService floodlightProvider;
 
-    protected Hashtable<Long, Short> sw1table = new Hashtable<Long, Short>();
+    protected Hashtable<Long, Short> lrntable = new Hashtable<Long, Short>();
     
     /**
      * @param floodlightProvider the floodlightProvider to set
@@ -85,14 +89,16 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
         Long sourceMACHash = Ethernet.toLong(eth.getSourceMACAddress());
         Long destMACHash = Ethernet.toLong(eth.getDestinationMACAddress());
         
-        if(!sw1table.containsKey(sourceMACHash)) {
-        	sw1table.put(sourceMACHash, pi.getInPort());
+        // why are we .toLong the source and dest MAC addrs? careful here
+        
+        if(!lrntable.containsKey(sourceMACHash)) {
+        	lrntable.put(sourceMACHash, pi.getInPort());
         }
         
-        if(sw1table.containsKey(destMACHash)){
+        if(lrntable.containsKey(destMACHash)){
         	//use the port value associated with the key to make the packet-out
         	OFActionOutput action = new OFActionOutput()
-        		.setPort(sw1table.get(destMACHash));
+        		.setPort(lrntable.get(destMACHash));
         	po.setActions(Collections.singletonList((OFAction)action));
             po.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
 
@@ -106,13 +112,23 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
                 po.setLength(U16.t(OFPacketOut.MINIMUM_LENGTH
                         + po.getActionsLength()));
             }
+            // sends pkt-out to the switch
             try {
                 sw.write(po, cntx);
             } catch (IOException e) {
                 log.error("Failure writing PacketOut", e);
             }
             
-            //now send flow-mod to switch for this destMAC
+            // create flowMod message for this destMAC
+            OFFlowMod flowMod = (OFFlowMod) floodlightProvider
+            		.getOFMessageFactory()
+            		.getMessage(OFType.FLOW_MOD);
+            flowMod.setCommand(OFFlowMod.OFPFC_ADD);
+            
+            // now scrub match from the packet received
+            OFMatch match = new OFMatch();
+            match.setDataLayerDestination(eth.getDestinationMACAddress());
+            match.setWildcards(Wildcards.FULL.)
             
         }
 
