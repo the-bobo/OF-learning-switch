@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Dictionary;
 import java.util.Hashtable; 
 import java.util.List;
 
@@ -62,6 +61,7 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
     protected IFloodlightProviderService floodlightProvider;
 
     protected Hashtable<Long, Short> lrntable = new Hashtable<Long, Short>();
+    protected Hashtable<Long, Hashtable> meta_table = new Hashtable<Long, Hashtable>();
     
     List<OFAction> actions = null;
     
@@ -84,12 +84,20 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
                 .getMessage(OFType.PACKET_OUT);
         po.setBufferId(pi.getBufferId())
             .setInPort(pi.getInPort());
-
+        
+        // enter the meta_table to find the right switch ID
+        if(!meta_table.containsKey(sw.getId())) {
+        	Hashtable<Long, Short> newtable = new Hashtable<Long, Short>();
+        	meta_table.put(sw.getId(), newtable);
+        }
+        
+        lrntable = meta_table.get(sw.getId());
+        
         // learning switch
         Ethernet eth =
                 IFloodlightProviderService.bcStore.get(cntx,
                                             IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
-
+        
         Long sourceMACHash = Ethernet.toLong(eth.getSourceMACAddress());
         Long destMACHash = Ethernet.toLong(eth.getDestinationMACAddress());
         
@@ -141,6 +149,10 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
             actions.add(action);
             flowMod.setActions(actions);
             
+            // misc reformatting to avoid an IOException
+            flowMod.setLength((short)(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH)); //assuming you only have one action, which is output
+            flowMod.setBufferId(OFPacketOut.BUFFER_ID_NONE); 
+            
             // send flowMod message to switch
             try {
             	sw.write(flowMod, null);
@@ -152,31 +164,30 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
 
         else {
         	//make packetout and set port to flood, send pkt-out to switch
+            // set actions
+            OFActionOutput action = new OFActionOutput()
+                .setPort(OFPort.OFPP_FLOOD.getValue());
+            po.setActions(Collections.singletonList((OFAction)action));
+            po.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
+
+            // set data if is is included in the packetin
+            if (pi.getBufferId() == OFPacketOut.BUFFER_ID_NONE) {
+                byte[] packetData = pi.getPacketData();
+                po.setLength(U16.t(OFPacketOut.MINIMUM_LENGTH
+                        + po.getActionsLength() + packetData.length));
+                po.setPacketData(packetData);
+            } else {
+                po.setLength(U16.t(OFPacketOut.MINIMUM_LENGTH
+                        + po.getActionsLength()));
+            }
+            try {
+                sw.write(po, cntx);
+            } catch (IOException e) {
+                log.error("Failure writing PacketOut", e);
+            }
+
         }
         
-/* commented out
-        // set actions
-        OFActionOutput action = new OFActionOutput()
-            .setPort(OFPort.OFPP_FLOOD.getValue());
-        po.setActions(Collections.singletonList((OFAction)action));
-        po.setActionsLength((short) OFActionOutput.MINIMUM_LENGTH);
-
-        // set data if is is included in the packetin
-        if (pi.getBufferId() == OFPacketOut.BUFFER_ID_NONE) {
-            byte[] packetData = pi.getPacketData();
-            po.setLength(U16.t(OFPacketOut.MINIMUM_LENGTH
-                    + po.getActionsLength() + packetData.length));
-            po.setPacketData(packetData);
-        } else {
-            po.setLength(U16.t(OFPacketOut.MINIMUM_LENGTH
-                    + po.getActionsLength()));
-        }
-        try {
-            sw.write(po, cntx);
-        } catch (IOException e) {
-            log.error("Failure writing PacketOut", e);
-        }
-*/
         return Command.CONTINUE;
     }
 
