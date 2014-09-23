@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Dictionary;
 import java.util.Hashtable; 
+import java.util.List;
 
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
@@ -44,6 +45,7 @@ import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.Wildcards;
+import org.openflow.protocol.Wildcards.Flag;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.util.U16;
@@ -60,6 +62,8 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
     protected IFloodlightProviderService floodlightProvider;
 
     protected Hashtable<Long, Short> lrntable = new Hashtable<Long, Short>();
+    
+    List<OFAction> actions = null;
     
     /**
      * @param floodlightProvider the floodlightProvider to set
@@ -128,7 +132,21 @@ public class Hub implements IFloodlightModule, IOFMessageListener {
             // now scrub match from the packet received
             OFMatch match = new OFMatch();
             match.setDataLayerDestination(eth.getDestinationMACAddress());
-            match.setWildcards(Wildcards.FULL.)
+            match.setInputPort(pi.getInPort());
+            match.setWildcards(Wildcards.FULL.matchOn(Flag.IN_PORT, Flag.DL_DST));
+            
+            // now put match and pkt-out actions together in this flowMod
+            flowMod.setMatch(match);
+            List<OFAction> actions = new ArrayList<OFAction>(1);
+            actions.add(action);
+            flowMod.setActions(actions);
+            
+            // send flowMod message to switch
+            try {
+            	sw.write(flowMod, null);
+            } catch (IOException e) {
+            	log.error("Failure sending flowMod message", e);
+            }
             
         }
 
