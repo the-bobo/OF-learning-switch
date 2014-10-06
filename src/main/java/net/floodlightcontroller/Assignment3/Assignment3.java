@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFType;
 
@@ -14,24 +16,35 @@ import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.core.IOFSwitch.PortChangeType;
 import net.floodlightcontroller.core.IOFSwitchListener;
 import net.floodlightcontroller.core.ImmutablePort;
+import net.floodlightcontroller.core.internal.CmdLineSettings;
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import net.floodlightcontroller.core.module.FloodlightModuleException;
+import net.floodlightcontroller.core.module.FloodlightModuleLoader;
 import net.floodlightcontroller.core.module.IFloodlightModule;
+import net.floodlightcontroller.core.module.IFloodlightModuleContext;
 import net.floodlightcontroller.core.module.IFloodlightService;
+import net.floodlightcontroller.hub.Hub;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryListener;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
+import net.floodlightcontroller.linkdiscovery.LinkInfo;
+import net.floodlightcontroller.restserver.IRestApiService;
+import net.floodlightcontroller.routing.Link;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		IFloodlightModule, IOFSwitchListener {
 	
 	protected ILinkDiscoveryService linkDiscoverer;
 	protected IFloodlightProviderService floodlightProvider;
+	protected static Logger log = LoggerFactory.getLogger(Assignment3.class);
 
 	@Override
 	public void init(FloodlightModuleContext context)
 			throws FloodlightModuleException {
 		
-		Map<String, String> configParams = context.getConfigParameters(this);
+		Map<String, String> configParams = context.getConfigParams(this);
 		String TopologyInfo = configParams.get("Topology Info");
 		String NumSwitches = configParams.get("N");
 		
@@ -47,16 +60,39 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		
 		// Get Map of current topology
 		Map<Link, LinkInfo> links = this.linkDiscoverer.getLinks();
+		// won't work log.error(this.linkDiscoverer.getLinks());
 		
 		// Run OSPF on the 'links' Map
 		
 
 	}
 	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
+    public static void main(String[] args) throws FloodlightModuleException {
+        // Setup logger
+        System.setProperty("org.restlet.engine.loggerFacadeClass", 
+                "org.restlet.ext.slf4j.Slf4jLoggerFacade");
+        
+        CmdLineSettings settings = new CmdLineSettings();
+        CmdLineParser parser = new CmdLineParser(settings);
+        try {
+            parser.parseArgument(args);
+        } catch (CmdLineException e) {
+            parser.printUsage(System.out);
+            System.exit(1);
+        }
+        
+        // Load modules
+        FloodlightModuleLoader fml = new FloodlightModuleLoader();
+        IFloodlightModuleContext moduleContext = fml.loadModulesFromConfig(settings.getModuleFile());
+        // Run REST server
+        IRestApiService restApi = moduleContext.getServiceImpl(IRestApiService.class);
+        restApi.run();
+        // Run the main floodlight module
+        IFloodlightProviderService controller =
+                moduleContext.getServiceImpl(IFloodlightProviderService.class);
+        // This call blocks, it has to be the last line in the main
+        controller.run();
+    }
 	
 	
 	
