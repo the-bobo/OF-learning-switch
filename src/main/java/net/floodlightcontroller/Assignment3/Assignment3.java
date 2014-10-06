@@ -32,12 +32,19 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 			throws FloodlightModuleException {
 		// From Slides
 		this.floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
+
 		// add self as one of switch event listeners
 		this.floodlightProvider.addOFSwitchListener(this);
 		
+		// add self as one of link event listeners
 		this.linkDiscoverer = context.getServiceImpl(ILinkDiscoveryService.class);
-		//add self as one of link event listeners
 		this.linkDiscoverer.addListener(this);
+		
+		// Get Map of current topology
+		Map<Link, LinkInfo> links = this.linkDiscoverer.getLinks();
+		
+		// Run OSPF on the 'links' Map
+		
 
 	}
 	
