@@ -61,6 +61,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		
 		// Get Map of current topology
 		links = this.linkDiscoverer.getLinks();
+		System.out.println("This is what linkDiscoverer returns in init() : " + this.linkDiscoverer.getLinks());
 
 		// Run OSPF on the 'links' Map
 		// Probably should do this as a separate method that happens every time
@@ -75,7 +76,16 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	
 	@Override
 	public void linkDiscoveryUpdate(LDUpdate update) {
-		// TODO Auto-generated method stub
+		// Make a Link object for insertion into our links Map object
+		Link newLink = new Link(update.getSrc(), update.getSrcPort(), update.getDst(), update.getDstPort());
+
+		// Make a LinkInfo object for insertion into our links Map object
+		// firstSeenTime, lastLldpReceivedTime, lastBddpReceivedTime
+		// Long firstSeenTime, Long lastLldpReceivedTime, Long lastBddpReceivedTime
+		LinkInfo newLinkInfo = new LinkInfo();
+
+		System.out.println("This is what linkDiscoverer returns in linkDiscovery(LDUpdate) : " + this.linkDiscoverer.getLinks());
+		
 		System.out.println("Inside linkDiscoveryUpdate)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
@@ -89,11 +99,15 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	@Override
 	public void linkDiscoveryUpdate(List<LDUpdate> updateList) {
 		// TODO Auto-generated method stub
+		
+		links = this.linkDiscoverer.getLinks();
+		System.out.println("This is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
+		
 		System.out.println("Inside linkDiscoveryUpdate LIST)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
-			System.out.println("Iterating through the Map object lists");
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 		}
+		
 		/*System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
@@ -109,7 +123,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
         
         // DEBUG STATEMENTS THAT WORK
         // Both of these work
-        //System.out.println("Enteirng public static void main qqqq");
+        //System.out.println("Entering public static void main qqqq");
         //log.error("Enteirng public static void main lllll");
         
         CmdLineSettings settings = new CmdLineSettings();
