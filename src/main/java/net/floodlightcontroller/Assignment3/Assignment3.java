@@ -30,6 +30,11 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	@Override
 	public void init(FloodlightModuleContext context)
 			throws FloodlightModuleException {
+		
+		Map<String, String> configParams = context.getConfigParameters(this);
+		String TopologyInfo = configParams.get("Topology Info");
+		String NumSwitches = configParams.get("N");
+		
 		// From Slides
 		this.floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
 

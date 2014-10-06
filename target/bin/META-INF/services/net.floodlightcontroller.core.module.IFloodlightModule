@@ -27,3 +27,4 @@ org.sdnplatform.sync.internal.SyncTorture
 net.floodlightcontroller.devicemanager.internal.DefaultEntityClassifier
 net.floodlightcontroller.mactracker.MACTracker
 net.floodlightcontroller.hub.Hub
+net.floodlightcontroller.Assignment3.Assignment3
