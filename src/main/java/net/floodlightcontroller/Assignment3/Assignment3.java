@@ -39,6 +39,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	protected ILinkDiscoveryService linkDiscoverer;
 	protected IFloodlightProviderService floodlightProvider;
 	protected Map<Link, LinkInfo> links;
+	protected int N; //will be used as number of switches in linkDiscoveryUpdate
 	protected static Logger log = LoggerFactory.getLogger(Assignment3.class);
 
 	@Override
@@ -47,7 +48,9 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		
 		Map<String, String> configParams = context.getConfigParams(this);
 		String TopologyInfo = configParams.get("Topology Info");
-		String NumSwitches = configParams.get("N");
+		String NumSwitches = configParams.get("Num");
+		System.out.println("Here is what NumSwitches looks like: " + NumSwitches);
+		N = Integer.parseInt(NumSwitches);
 		
 		// From Slides
 		this.floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
@@ -59,14 +62,6 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		this.linkDiscoverer = context.getServiceImpl(ILinkDiscoveryService.class);
 		this.linkDiscoverer.addListener(this);
 		
-		// Get Map of current topology
-		links = this.linkDiscoverer.getLinks();
-		System.out.println("This is what linkDiscoverer returns in init() : " + this.linkDiscoverer.getLinks());
-
-		// Run OSPF on the 'links' Map
-		// Probably should do this as a separate method that happens every time
-		// the links object changes
-		
 		/*System.out.println("Inside init()");
 		System.out.println("Inside init()");
 		System.out.println("Inside init()");*/
@@ -77,11 +72,13 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	@Override
 	public void linkDiscoveryUpdate(LDUpdate update) {
 		// Make a Link object for insertion into our links Map object
-		Link newLink = new Link(update.getSrc(), update.getSrcPort(), update.getDst(), update.getDstPort());
+		// Nope doesn't matter
+		//Link newLink = new Link(update.getSrc(), update.getSrcPort(), update.getDst(), update.getDstPort());
 
 		// Make a LinkInfo object for insertion into our links Map object
 		// firstSeenTime, lastLldpReceivedTime, lastBddpReceivedTime
 		// Long firstSeenTime, Long lastLldpReceivedTime, Long lastBddpReceivedTime
+		/* None of this matters
 		LinkInfo newLinkInfo = new LinkInfo();
 
 		System.out.println("This is what linkDiscoverer returns in linkDiscovery(LDUpdate) : " + this.linkDiscoverer.getLinks());
@@ -89,7 +86,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		System.out.println("Inside linkDiscoveryUpdate)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-		}
+		} */
 		/*System.out.println("Inside linkDiscoveryUpdate)");
 		System.out.println("Inside linkDiscoveryUpdate)");
 		System.out.println("Inside linkDiscoveryUpdate)");*/
@@ -98,15 +95,19 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 
 	@Override
 	public void linkDiscoveryUpdate(List<LDUpdate> updateList) {
-		// TODO Auto-generated method stub
+		// THIS IS THE ONLY PLACE LINK UPDATES SEEM TO HAPPEN
 		
-		links = this.linkDiscoverer.getLinks();
-		System.out.println("This is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
+		if (this.linkDiscoverer.getLinks().size() == N){
+			links = this.linkDiscoverer.getLinks();
+		}
+		System.out.println("After waiting for" + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
 		
+		// PRETTY PRINTER
+		/*
 		System.out.println("Inside linkDiscoveryUpdate LIST)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-		}
+		}*/
 		
 		/*System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
