@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+// THIS NEEDS TO PASS TO OUR FLOWMOD GENERATOR
+// Djikstra's will need to run for every host in the network
+
 class Vertex implements Comparable<Vertex>
 {
 	public final Long name; //should be IP or DPID

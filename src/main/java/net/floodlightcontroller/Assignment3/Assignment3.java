@@ -1,13 +1,22 @@
 package net.floodlightcontroller.Assignment3;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.openflow.protocol.OFFlowMod;
+import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.OFPacketOut;
 import org.openflow.protocol.OFType;
+import org.openflow.protocol.Wildcards;
+import org.openflow.protocol.Wildcards.Flag;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
@@ -29,7 +38,6 @@ import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
 import net.floodlightcontroller.linkdiscovery.LinkInfo;
 import net.floodlightcontroller.restserver.IRestApiService;
 import net.floodlightcontroller.routing.Link;
-
 import net.floodlightcontroller.Assignment3.Djikstras;
 
 import org.slf4j.Logger;
@@ -74,7 +82,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	@Override
 	public void linkDiscoveryUpdate(LDUpdate update) {
 		// Make a Link object for insertion into our links Map object
-		// Nope doesn't matter
+		// Nope doesn't matter -- this is not where the link updates register
 		//Link newLink = new Link(update.getSrc(), update.getSrcPort(), update.getDst(), update.getDstPort());
 
 		// Make a LinkInfo object for insertion into our links Map object
@@ -102,7 +110,11 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		if (this.linkDiscoverer.getLinks().size() == N){
 			links = this.linkDiscoverer.getLinks();
 		}
-		System.out.println("After waiting for" + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
+		
+		// Pass to Djikstra's for calculating shortest path
+		// Djikstra's will need to run for every host in the network
+		
+		//System.out.println("After waiting for " + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
 		
 		// PRETTY PRINTER
 		/*
@@ -115,6 +127,54 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
 
+	}
+	
+	public void bossModGenerator(--WhateverDjikstrasGivesMe--) {
+		//Needs to iterate over the following functionality for each entry in --WhateverDjikstrasGivesMe--
+		//Go through and clean up all the //needs replacing
+		
+		for (something : somethingElse){ //iterate through a whole path object for a given vertex
+										//from Djikstra's - install flowMods to switches along
+										//that path. 
+			
+		
+			//Generate a single flowMod message
+			OFFlowMod flowMod = (OFFlowMod) floodlightProvider
+					.getOFMessageFactory()
+					.getMessage(OFType.FLOW_MOD);
+			flowMod.setCommand(OFFlowMod.OFPFC_ADD);
+
+			//Generate match for the flowMod
+			OFMatch match = new OFMatch();
+			//should be setDataLayerDestination or match.setNetworkDestination(int ip address)?
+			match.setDataLayerDestination(??WHAT??.getDestinationMACAddress()); //needs replacing 
+			match.setInputPort(pi.getInPort()); //needs replacing - should be port of
+			//the Switch that it accepts these packets on 
+			//(i.e. packets FROM vertex we're iterating over headed TO each target in adjacencies list) 
+			match.setWildcards(Wildcards.FULL.matchOn(Flag.IN_PORT, Flag.DL_DST)); //change Flag.DL_DST to NW_DST
+
+			//Applying match to the flowMod
+			OFActionOutput action = new OFActionOutput()
+			.setPort(lrntable.get(---PORT OF CONTROLLER TO SEND TO SWITCH---));
+			//is the port of the Controller that connects to the Switch we want to send
+			//the flowMod message to
+			List<OFAction> actions = new ArrayList<OFAction>(1);
+			actions.add(action);
+			flowMod.setActions(actions);
+
+			// misc reformatting to avoid an IOException
+			flowMod.setLength((short)(OFFlowMod.MINIMUM_LENGTH + OFActionOutput.MINIMUM_LENGTH)); //assuming you only have one action, which is output
+			flowMod.setBufferId(OFPacketOut.BUFFER_ID_NONE); 
+
+			// send flowMod to the Switch
+			// send flowMod message to switch
+			try {
+				sw.write(flowMod, null); //need to define "sw" as the current switch
+			} catch (IOException e) {
+				log.error("Failure sending flowMod message", e);
+			}
+
+		}
 	}
 
 	
