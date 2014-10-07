@@ -1,6 +1,7 @@
 package net.floodlightcontroller.Assignment3;
 
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,6 +53,7 @@ IFloodlightModule, IOFSwitchListener {
 	protected int N; //will be used as number of switches in linkDiscoveryUpdate
 	protected static Logger log = LoggerFactory.getLogger(Assignment3.class);
 	protected static String[] aryLines;
+	protected Vertex [] hostVertices;
 
 	@Override
 	public void init(FloodlightModuleContext context)
@@ -221,7 +223,15 @@ IFloodlightModule, IOFSwitchListener {
 
 		// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
 
+		
 		for (String item : aryLines){
+			//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
+			Scanner parsing = new Scanner(item);
+			Vertex newHost = new Vertex("Host", parsing.nextLong(), (long)-1, (short)-1);
+			Vertex newSwitch = new Vertex("Switch", (long)-1, parsing.nextLong(), parsing.nextShort())
+			newHost.adjacencies = new Edge[]{
+					new Edge(newSwitch, 1)
+			};
 		}
 
 

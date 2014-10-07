@@ -15,15 +15,15 @@ import org.openflow.util.*;
 
 class Vertex implements Comparable<Vertex> 
 {
-	public final Long type; // "Host" or "Switch"
-	public final U32 Host_IP_Addr; //if Host, this object has this, else -1
-	public final Long swID; //if Switch, this object has this, else -1
-	public final Short swPort; //if Switch, this object has this, else -1 
+	public final String type; // "Host" or "Switch"
+	public final long Host_IP_Addr; //if Host, this object has this, else -1 *** should be a U32 not a Long
+	public final long swID; //if Switch, this object has this, else -1
+	public final short swPort; //if Switch, this object has this, else -1 
 	public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
 							   //for DPID's it connects to, should contain their inPort
 	public double minDistance = Double.POSITIVE_INFINITY;
 	public Vertex previous; 
-	public Vertex(Long argName, U32 hostAddr, Long switchID, Short switchPort) { 
+	public Vertex(String argName, long hostAddr, long switchID, short switchPort) { 
 		type = argName; 
 		Host_IP_Addr = hostAddr; 
 		swID = switchID; 
