@@ -7,22 +7,50 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.openflow.util.*;
+
 // THIS NEEDS TO PASS TO OUR FLOWMOD GENERATOR
 // Djikstra's will need to run for every host in the network
 
-class Vertex implements Comparable<Vertex>
+
+class Vertex implements Comparable<Vertex> 
 {
-	public final Long name; //should be IP or DPID
+	public final Long type; // "Host" or "Switch"
+	public final U32 Host_IP_Addr; //if Host, this object has this, else -1
+	public final Long swID; //if Switch, this object has this, else -1
+	public final Short swPort; //if Switch, this object has this, else -1 
 	public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
+							   //for DPID's it connects to, should contain their inPort
 	public double minDistance = Double.POSITIVE_INFINITY;
-	public Vertex previous; //is linked to another Vertex as its previous (?)
-	public Vertex(Long argName) { name = argName; }
-	public String toString() { return "" + name; }
+	public Vertex previous; 
+	public Vertex(Long argName, U32 hostAddr, Long switchID, Short switchPort) { 
+		type = argName; 
+		Host_IP_Addr = hostAddr; 
+		swID = switchID; 
+		swPort = switchPort;
+		}
+	public String toString() { return "" + type + " " + "Host IP ADDR: " + Host_IP_Addr + " Switch DPID: " + swID + " Switch outPort: " + swPort + "\n"; }
 	public int compareTo(Vertex other)
 	{
 		return Double.compare(minDistance, other.minDistance);
 	}
 }
+
+
+/*class Vertex implements Comparable<Vertex>
+{
+	public final String name; //should be IP or DPID
+	public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
+	public double minDistance = Double.POSITIVE_INFINITY;
+	public Vertex previous; //is linked to another Vertex as its previous (?)
+	public Vertex(String argName) { name = argName; }
+	public String toString() { return "" + name; }
+	public int compareTo(Vertex other)
+	{
+		return Double.compare(minDistance, other.minDistance);
+	}
+}*/
+
 class Edge
 {
 	public final Vertex target; //indicates the second member of the ordered vertex pair (vi,vj)
@@ -65,7 +93,7 @@ public class Djikstras
 		Collections.reverse(path);
 		return path;
 	}
-	/*
+	
 	public static void example()
 	{
 		
@@ -102,5 +130,5 @@ public class Djikstras
 		}
 		 
 	}
-	*/
+	
 }
