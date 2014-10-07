@@ -44,41 +44,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
-		IFloodlightModule, IOFSwitchListener {
-	
+IFloodlightModule, IOFSwitchListener {
+
 	protected ILinkDiscoveryService linkDiscoverer;
 	protected IFloodlightProviderService floodlightProvider;
 	protected Map<Link, LinkInfo> links;
 	protected int N; //will be used as number of switches in linkDiscoveryUpdate
 	protected static Logger log = LoggerFactory.getLogger(Assignment3.class);
+	protected static String[] aryLines;
 
 	@Override
 	public void init(FloodlightModuleContext context)
 			throws FloodlightModuleException {
-		
+
 		Map<String, String> configParams = context.getConfigParams(this);
 		String TopologyInfo = configParams.get("Topology Info");
 		String NumSwitches = configParams.get("Num");
 		System.out.println("Here is what NumSwitches looks like: " + NumSwitches);
-		N = Integer.parseInt(NumSwitches);
-		
+		N = Integer.parseInt(NumSwitches); //NEEDS TO BE N = args[0] FOR COMMAND LINE TO WORK
+
 		// From Slides
 		this.floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
 
 		// add self as one of switch event listeners
 		this.floodlightProvider.addOFSwitchListener(this);
-		
+
 		// add self as one of link event listeners
 		this.linkDiscoverer = context.getServiceImpl(ILinkDiscoveryService.class);
 		this.linkDiscoverer.addListener(this);
-		
+
 		/*System.out.println("Inside init()");
 		System.out.println("Inside init()");
 		System.out.println("Inside init()");*/
-		
+
 
 	}
-	
+
 	@Override
 	public void linkDiscoveryUpdate(LDUpdate update) {
 		// Make a Link object for insertion into our links Map object
@@ -92,7 +93,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		LinkInfo newLinkInfo = new LinkInfo();
 
 		System.out.println("This is what linkDiscoverer returns in linkDiscovery(LDUpdate) : " + this.linkDiscoverer.getLinks());
-		
+
 		System.out.println("Inside linkDiscoveryUpdate)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
@@ -106,38 +107,39 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 	@Override
 	public void linkDiscoveryUpdate(List<LDUpdate> updateList) {
 		// THIS IS THE ONLY PLACE LINK UPDATES SEEM TO HAPPEN
-		
+
 		if (this.linkDiscoverer.getLinks().size() == N){
 			links = this.linkDiscoverer.getLinks();
 		}
-		
+
+
 		// Pass to Djikstra's for calculating shortest path
 		// Djikstra's will need to run for every host in the network
-		
+
 		//System.out.println("After waiting for " + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
-		
+
 		// PRETTY PRINTER
 		/*
 		System.out.println("Inside linkDiscoveryUpdate LIST)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 		}*/
-		
+
 		/*System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
 
 	}
-	
+
 	public void bossModGenerator(--WhateverDjikstrasGivesMe--) {
 		//Needs to iterate over the following functionality for each entry in --WhateverDjikstrasGivesMe--
 		//Go through and clean up all the //needs replacing
-		
+
 		for (something : somethingElse){ //iterate through a whole path object for a given vertex
-										//from Djikstra's - install flowMods to switches along
-										//that path. 
-			
-		
+			//from Djikstra's - install flowMods to switches along
+			//that path. 
+
+
 			//Generate a single flowMod message
 			OFFlowMod flowMod = (OFFlowMod) floodlightProvider
 					.getOFMessageFactory()
@@ -177,58 +179,85 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		}
 	}
 
-	
-    public static void main(String[] args) throws FloodlightModuleException {
-    	
-    	// Setup logger
-        System.setProperty("org.restlet.engine.loggerFacadeClass", 
-                "org.restlet.ext.slf4j.Slf4jLoggerFacade");
-        
-        // DEBUG STATEMENTS THAT WORK
-        // Both of these work
-        //System.out.println("Entering public static void main qqqq");
-        //log.error("Enteirng public static void main lllll");
-        
-        CmdLineSettings settings = new CmdLineSettings();
-        CmdLineParser parser = new CmdLineParser(settings);
-        try {
-            parser.parseArgument(args);
-        } catch (CmdLineException e) {
-            parser.printUsage(System.out);
-            System.exit(1);
-        }
-        
-        // Load modules
-        FloodlightModuleLoader fml = new FloodlightModuleLoader();
-        IFloodlightModuleContext moduleContext = fml.loadModulesFromConfig(settings.getModuleFile());
-        // Run REST server
-        IRestApiService restApi = moduleContext.getServiceImpl(IRestApiService.class);
-        restApi.run();
-        // Run the main floodlight module
-        IFloodlightProviderService controller =
-                moduleContext.getServiceImpl(IFloodlightProviderService.class);
-        
-        // This call blocks, it has to be the last line in the main
-        controller.run();
-    }
-	
-	
-	
+
+	public static void main(String[] args) throws FloodlightModuleException {
+
+		// Setup logger
+		System.setProperty("org.restlet.engine.loggerFacadeClass", 
+				"org.restlet.ext.slf4j.Slf4jLoggerFacade");
+
+		// DEBUG STATEMENTS THAT WORK
+		// Both of these work
+		//System.out.println("Entering public static void main qqqq");
+		//log.error("Enteirng public static void main lllll");
+
+		CmdLineSettings settings = new CmdLineSettings();
+		CmdLineParser parser = new CmdLineParser(settings);
+		try {
+			parser.parseArgument(args);
+		} catch (CmdLineException e) {
+			parser.printUsage(System.out);
+			System.exit(1);
+		}
+
+
+		//GET INPUT FILE TO SCRUB HOST-->SWITCH CONNECTIONS FOR DJIKSTRA
+		String file_name = args[1];
+		file_name = "./tilepuzinput.txt"; //REPLACE WITH PATH TO FILE FROM COMMAND LINE ARG
+		try{
+		ReadFile file = new ReadFile(file_name);
+		aryLines = file.OpenFile();
+		}
+		catch (IOException f){
+			System.out.println(f.getMessage());
+			System.out.println("\n ERROR: First command line arg must be number of switches as a single integer");
+			System.out.println("\n ERROR: Second command line arg must be path to Input File with Host-->Switch topology \n");
+		}
+		
+		int iterator_counter = 0;
+		for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
+			System.out.println(aryLines[iterator_counter]);
+		}
+
+		// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
+
+		for (String item : aryLines){
+		}
+
+
+
+		// Load modules
+		FloodlightModuleLoader fml = new FloodlightModuleLoader();
+		IFloodlightModuleContext moduleContext = fml.loadModulesFromConfig(settings.getModuleFile());
+		// Run REST server
+		IRestApiService restApi = moduleContext.getServiceImpl(IRestApiService.class);
+		restApi.run();
+		// Run the main floodlight module
+		IFloodlightProviderService controller =
+				moduleContext.getServiceImpl(IFloodlightProviderService.class);
+
+		// This call blocks, it has to be the last line in the main
+		controller.run();
+	}
+
+
+
+
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
 		/*System.out.println("Inside getName()");
 		System.out.println("Inside getName()");
 		System.out.println("Inside getName()");*/
-		
+
 		return null;
 	}
 
-	
+
 	@Override
 	public boolean isCallbackOrderingPrereq(OFType type, String name) {
 		// TODO Auto-generated method stub
-		
+
 		return false;
 	}
 
@@ -238,7 +267,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside isCallbackOrderingPostreq");
 		System.out.println("Inside isCallbackOrderingPostreq");
 		System.out.println("Inside isCallbackOrderingPostreq");*/
-		
+
 		return false;
 	}
 
@@ -266,7 +295,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside switchActivated()");
 		System.out.println("Inside switchActivated()");
 		System.out.println("Inside switchActivated()");*/
-		
+
 	}
 
 	@Override
@@ -294,7 +323,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside getModuleServices()");
 		System.out.println("Inside getModuleServices()");
 		System.out.println("Inside getModuleServices()");*/
-		
+
 		return null;
 	}
 
@@ -304,7 +333,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside getServiceImpls()");
 		System.out.println("Inside getServiceImpls()");
 		System.out.println("Inside getServiceImpls()");*/
-		
+
 		return null;
 	}
 
@@ -315,7 +344,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		System.out.println("Inside getModuleDependencies()");
 		System.out.println("Inside getModuleDependencies()");
 		System.out.println("Inside getModuleDependencies()");*/
-		
+
 		return null;
 	}
 
@@ -326,7 +355,7 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside startUp");
 		System.out.println("Inside startUp");
 		System.out.println("Inside startUp");*/
-		
+
 
 	}
 
@@ -337,10 +366,10 @@ public class Assignment3 implements ILinkDiscoveryListener, IOFMessageListener,
 		/*System.out.println("Inside Ilistener.Command receive");
 		System.out.println("Inside Ilistener.Command receive");
 		System.out.println("Inside Ilistener.Command receive");*/
-		
-		
+
+
 		return null;
 	}
 
-	
+
 }
