@@ -1,11 +1,6 @@
 package net.floodlightcontroller.Assignment3;
 
 import java.io.IOException;
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.*;
 
 import org.kohsuke.args4j.CmdLineException;
@@ -19,6 +14,7 @@ import org.openflow.protocol.Wildcards;
 import org.openflow.protocol.Wildcards.Flag;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.util.HexString;
 
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
@@ -110,9 +106,14 @@ IFloodlightModule, IOFSwitchListener {
 				for (String item : dummyAryLines){
 					//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
 					//This stores our Vertices for Djikstras, but does not associate port info w/ switches
+					//This code assumes each host connects to only one switch
 					Scanner parsing = new Scanner(item);
-					Vertex newHost = new Vertex("Host", parsing.next(), "-1");
-					Vertex newSwitch = new Vertex("Switch", "-1", parsing.next());
+					String hostIP = parsing.next();
+					hostIP = hostIP.substring(0,hostIP.length()-1); // gets rid of trailing comma
+					Vertex newHost = new Vertex("Host", hostIP, "-1");
+					String switchDPID = parsing.next();
+					switchDPID = switchDPID.substring(0, switchDPID.length()-1);
+					Vertex newSwitch = new Vertex("Switch", "-1", switchDPID);
 					newHost.adjacencies = new Edge[]{
 							new Edge(newSwitch, 1)
 					};
@@ -125,20 +126,17 @@ IFloodlightModule, IOFSwitchListener {
 					//This will tell us which Switches connect to which Hosts,
 					//along with the portInfo
 					Scanner parsing2 = new Scanner(item2);
-					Vertex newTerminalHost = new Vertex("Host", parsing2.next(), "-1");
-					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.next(), Short.parseShort(parsing2.next()), newTerminalHost);
+					String hostIP2 = parsing2.next();
+					hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
+					Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
+					String switchDPID2 = parsing2.next();
+					switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
+					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(switchDPID2, Short.parseShort(parsing2.next()), newTerminalHost);
 					switchToHostWithPortInfo.add(newFullSwitchToHost);
 					parsing2.close();
 				}
-				
-				// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
-				// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
-				
-				// THEN, DO IT AGAIN, BUT STORE PORT INFO
 
-		
-		
-		/*System.out.println("Inside init()");
+				/*System.out.println("Inside init()");
 		System.out.println("Inside init()");
 		System.out.println("Inside init()");*/
 
@@ -172,11 +170,45 @@ IFloodlightModule, IOFSwitchListener {
 	@Override
 	public void linkDiscoveryUpdate(List<LDUpdate> updateList) {
 		// THIS IS THE ONLY PLACE LINK UPDATES SEEM TO HAPPEN
-
+		
 		if (this.linkDiscoverer.getLinks().size() == N){
 			links = this.linkDiscoverer.getLinks();
-		}
 
+			// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
+			// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
+
+			// THEN, DO IT AGAIN, BUT STORE PORT INFO
+			
+			/*try {
+			    Thread.sleep(1000);                 //1000 milliseconds is one second.
+			} catch(InterruptedException ex) {
+			    Thread.currentThread().interrupt();
+			}*/
+
+			int ijj; //i have no idea what scope is like in java, so here's to random names for counters
+			for (ijj = 0; ijj < aryLines.length; ijj++){
+				
+				if( hostVertices.get(ijj) != null ){
+					
+					int counterthing;
+					for (counterthing = 0; counterthing < hostVertices.get(ijj).adjacencies.length; counterthing++){
+						String hostVerts_switch; 
+						hostVerts_switch = hostVertices.get(ijj).adjacencies[counterthing].target.swID;
+						
+						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
+							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
+								System.out.println("this worked");
+							}
+							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+
+						}
+					}
+				}
+
+			}
+
+		}
+		
 
 		// Pass to Djikstra's for calculating shortest path
 		// Djikstra's will need to run for every host in the network
@@ -188,8 +220,10 @@ IFloodlightModule, IOFSwitchListener {
 		System.out.println("Inside linkDiscoveryUpdate LIST)");
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-		}*/
-
+		}
+		
+		System.out.println(this.linkDiscoverer.getLinks());
+*/
 		/*System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
@@ -385,6 +419,7 @@ IFloodlightModule, IOFSwitchListener {
 	public void startUp(FloodlightModuleContext context)
 			throws FloodlightModuleException {
 		// TODO Auto-generated method stub
+		
 		/*System.out.println("Inside startUp");
 		System.out.println("Inside startUp");
 		System.out.println("Inside startUp");*/
