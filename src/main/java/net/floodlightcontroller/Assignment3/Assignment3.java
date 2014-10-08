@@ -74,93 +74,93 @@ IFloodlightModule, IOFSwitchListener {
 		this.linkDiscoverer.addListener(this);
 
 		// =========== FILE PARSING ================
-		
+
 		//GET INPUT FILE TO SCRUB HOST-->SWITCH CONNECTIONS FOR DJIKSTRA
-				//String file_name = args[1];
-				//String file_name = configParams.get("Topology Info"); //REPLACE WITH PATH TO FILE FROM COMMAND LINE ARG
-				String file_name = "./topologyinfo.txt";
-				System.out.println("====== HERE IS WHAT I GET FOR file_name " + file_name);
-				try{
-				ReadFile file = new ReadFile(file_name);
-				aryLines = file.OpenFile();
-				}
-				
-				catch (IOException f){
-					System.out.println(f.getMessage());
-					System.out.println("\n ERROR: First command line arg must be number of switches as a single integer");
-					System.out.println("\n ERROR: Second command line arg must be path to Input File with Host-->Switch topology \n");
-				}
-				
-				int iterator_counter;
-				//String[][] elephantList = new String[][] { };
-				
-				for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
-					System.out.println(aryLines[iterator_counter]);
-				}
-				
-				
+		//String file_name = args[1];
+		//String file_name = configParams.get("Topology Info"); //REPLACE WITH PATH TO FILE FROM COMMAND LINE ARG
+		String file_name = "./topologyinfo.txt";
+		System.out.println("====== HERE IS WHAT I GET FOR file_name " + file_name);
+		try{
+			ReadFile file = new ReadFile(file_name);
+			aryLines = file.OpenFile();
+		}
 
-				// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
-				String[] dummyAryLines = aryLines;
-				String[] dummyAryLines2 = aryLines;
-				String[] dummyAryLines3 = aryLines;
-				
-				for (String item : dummyAryLines){
-					//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
-					//This stores our Vertices for Djikstras, but does not associate port info w/ switches
-					//This code assumes each host connects to only one switch
-					Scanner parsing = new Scanner(item);
-					String hostIP = parsing.next();
-					hostIP = hostIP.substring(0,hostIP.length()-1); // gets rid of trailing comma
-					Vertex newHost = new Vertex("Host", hostIP, "-1");
-					String switchDPID = parsing.next();
-					switchDPID = switchDPID.substring(0, switchDPID.length()-1);
-					Vertex newSwitch = new Vertex("Switch", "-1", switchDPID);
-					
-					List<Edge> edgeList = new ArrayList<Edge>();
-					edgeList.add(new Edge(newSwitch, 1));
-					newHost.adjacencies = edgeList;
-					
-					hostVertices.add(newHost);
-					parsing.close();
-				}
-				System.out.println("Here is what I get for hostVertices " + hostVertices);
+		catch (IOException f){
+			System.out.println(f.getMessage());
+			System.out.println("\n ERROR: First command line arg must be number of switches as a single integer");
+			System.out.println("\n ERROR: Second command line arg must be path to Input File with Host-->Switch topology \n");
+		}
 
-				for (String item2: dummyAryLines2){
-					//This will tell us which Switches connect to which Hosts,
-					//along with the portInfo
-					Scanner parsing2 = new Scanner(item2);
-					String hostIP2 = parsing2.next();
-					hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
-					Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
-					String switchDPID2 = parsing2.next();
-					switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
-					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(switchDPID2, Short.parseShort(parsing2.next()), newTerminalHost);
-					switchToHostWithPortInfo.add(newFullSwitchToHost);
-					parsing2.close();
-				}
-				
-				for (String item3: dummyAryLines3){
-					//this will tell us which Switches connect to which Hosts,
-					//without portInfo, so that we can run Djikstras on a full graph
-					Scanner parsing3 = new Scanner(item3);
-					String hostIP2 = parsing3.next();
-					hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
-					Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
-					String switchDPID2 = parsing3.next();
-					switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
-					Vertex newSwitchToHost = new Vertex("Switch", "-1", switchDPID2);
-					Short dummyDummy = Short.parseShort(parsing3.next()); // not sure what'll happen if i don't dispose of it 
-					//add newTerminalHost as an Edge in Vertex newSwitchToHost
-					List<Edge> edgeList2 = new ArrayList<Edge>();
-					edgeList2.add(new Edge(newTerminalHost, 1));
-					newSwitchToHost.adjacencies = edgeList2;
-					
-					switchToHost.add(newSwitchToHost);
-					parsing3.close();
-				}
+		int iterator_counter;
+		//String[][] elephantList = new String[][] { };
 
-				/*System.out.println("Inside init()");
+		for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
+			System.out.println(aryLines[iterator_counter]);
+		}
+
+
+
+		// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
+		String[] dummyAryLines = aryLines;
+		String[] dummyAryLines2 = aryLines;
+		String[] dummyAryLines3 = aryLines;
+
+		for (String item : dummyAryLines){
+			//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
+			//This stores our Vertices for Djikstras, but does not associate port info w/ switches
+			//This code assumes each host connects to only one switch
+			Scanner parsing = new Scanner(item);
+			String hostIP = parsing.next();
+			hostIP = hostIP.substring(0,hostIP.length()-1); // gets rid of trailing comma
+			Vertex newHost = new Vertex("Host", hostIP, "-1");
+			String switchDPID = parsing.next();
+			switchDPID = switchDPID.substring(0, switchDPID.length()-1);
+			Vertex newSwitch = new Vertex("Switch", "-1", switchDPID);
+
+			List<Edge> edgeList = new ArrayList<Edge>();
+			edgeList.add(new Edge(newSwitch, 1));
+			newHost.adjacencies = edgeList;
+
+			hostVertices.add(newHost);
+			parsing.close();
+		}
+		System.out.println("Here is what I get for hostVertices " + hostVertices);
+
+		for (String item2: dummyAryLines2){
+			//This will tell us which Switches connect to which Hosts,
+			//along with the portInfo
+			Scanner parsing2 = new Scanner(item2);
+			String hostIP2 = parsing2.next();
+			hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
+			Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
+			String switchDPID2 = parsing2.next();
+			switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
+			FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(switchDPID2, Short.parseShort(parsing2.next()), newTerminalHost);
+			switchToHostWithPortInfo.add(newFullSwitchToHost);
+			parsing2.close();
+		}
+
+		for (String item3: dummyAryLines3){
+			//this will tell us which Switches connect to which Hosts,
+			//without portInfo, so that we can run Djikstras on a full graph
+			Scanner parsing3 = new Scanner(item3);
+			String hostIP2 = parsing3.next();
+			hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
+			Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
+			String switchDPID2 = parsing3.next();
+			switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
+			Vertex newSwitchToHost = new Vertex("Switch", "-1", switchDPID2);
+			Short dummyDummy = Short.parseShort(parsing3.next()); // not sure what'll happen if i don't dispose of it 
+			//add newTerminalHost as an Edge in Vertex newSwitchToHost
+			List<Edge> edgeList2 = new ArrayList<Edge>();
+			edgeList2.add(new Edge(newTerminalHost, 1));
+			newSwitchToHost.adjacencies = edgeList2;
+
+			switchToHost.add(newSwitchToHost);
+			parsing3.close();
+		}
+
+		/*System.out.println("Inside init()");
 		System.out.println("Inside init()");
 		System.out.println("Inside init()");*/
 
@@ -204,8 +204,6 @@ IFloodlightModule, IOFSwitchListener {
 			// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
 			// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
 
-			// THEN, DO IT AGAIN, BUT STORE PORT INFO
-			
 			/*try {
 			    Thread.sleep(1000);                 //1000 milliseconds is one second.
 			} catch(InterruptedException ex) {
@@ -214,30 +212,55 @@ IFloodlightModule, IOFSwitchListener {
 
 			int ijj; 
 			for (ijj = 0; ijj < aryLines.length; ijj++){
-				
+
 				if( hostVertices.get(ijj) != null ){
-					
-					int counterthing;
-					for (counterthing = 0; counterthing < hostVertices.get(ijj).adjacencies.size(); counterthing++){
+
+					int host_adj_list_cntr;
+					for (host_adj_list_cntr = 0; host_adj_list_cntr < hostVertices.get(ijj).adjacencies.size(); host_adj_list_cntr++){
 						String hostVerts_switch; 
-						hostVerts_switch = hostVertices.get(ijj).adjacencies.get(counterthing).target.swID;
-						
+						hostVerts_switch = hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.swID;
+
 						int cntrx;
 						for (cntrx = 0; cntrx < switchToHost.size(); cntrx++){
-							if ( hostVerts_switch.equals(switchToHost.get(cntrx).swID) ){
-								int second_cntr;
-								for (second_cntr = 0; second_cntr < switchToHost.get(cntrx).adjacencies.size(); second_cntr++){
-									hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(switchToHost.get(cntrx).adjacencies.get(second_cntr));
+							if ( hostVerts_switch.equals(switchToHost.get(cntrx).swID) ){ // switches match
+								// check to see if we already have this entry in the adjacency list of the switch
+								int flipBit2 = 0;
+								int sw2host_adj_list_cntr;
+
+								for (sw2host_adj_list_cntr = 0; sw2host_adj_list_cntr < switchToHost.get(cntrx).adjacencies.size(); sw2host_adj_list_cntr++){
+									int sw_adj_list_cntr_inside_host;
+
+									for (sw_adj_list_cntr_inside_host = 0; sw_adj_list_cntr_inside_host < hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.size(); sw_adj_list_cntr_inside_host++){
+
+										// This check (for duplicate Switch-->Switch entries) is bad, but I don't know why 
+										/*if ( hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.get(sw_adj_list_cntr_inside_host).target.swID.equals(switchToHost.get(cntrx).adjacencies.get(sw2host_adj_list_cntr).target.swID) 
+												&& hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.get(sw_adj_list_cntr_inside_host).target.type.equals(switchToHost.get(cntrx).adjacencies.get(sw2host_adj_list_cntr).target.type)){
+											flipBit2 = 1;
+										}*/
+										if ( hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.get(sw_adj_list_cntr_inside_host).target.Host_IP_Addr.equals(switchToHost.get(cntrx).adjacencies.get(sw2host_adj_list_cntr).target.Host_IP_Addr)
+												&& hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.get(sw_adj_list_cntr_inside_host).target.type.equals(switchToHost.get(cntrx).adjacencies.get(sw2host_adj_list_cntr).target.type)){
+											flipBit2 = 1;
+										}
+									}
+								}
+
+								if (flipBit2 == 0){
+									// add it
+									int second_cntr;
+									for (second_cntr = 0; second_cntr < switchToHost.get(cntrx).adjacencies.size(); second_cntr++){
+										hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.add(switchToHost.get(cntrx).adjacencies.get(second_cntr));
+									}
 								}
 							}
 						}
-						
+
 						// if swID == switchToHost.get(cntr).swID [[cntr iterates over switchToHost]] 
 						// then we know we're talking about the same Switch
 						// so add the Hosts this Switch connects to to its adjacency list
 						// hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(switchToHost.get(cntr).adjacencies.get(second_cntr); 
 						// second_cntr iterates over switchToHost.get(cntr).adjacencies.size();
-						
+
+
 						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
 								// add the entry.getKey().getDst() to the adjacency list of the switch
@@ -245,20 +268,49 @@ IFloodlightModule, IOFSwitchListener {
 								int flipBit = 0;
 								int iterator;
 								// check to see if we already have this entry in the adjacency list of the switch
-								for (iterator = 0; iterator < hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.size(); iterator++){
-									if ( hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.get(iterator).target.swID.equals(HexString.toHexString(entry.getKey().getDst())) ){
+								for (iterator = 0; iterator < hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.size(); iterator++){
+									if ( hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.get(iterator).target.swID.equals(HexString.toHexString(entry.getKey().getDst())) ){
 										flipBit = 1;
 									}
 								}
 								if (flipBit == 0){
-									hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", HexString.toHexString(entry.getKey().getDst()) ), 1 ));
+									hostVertices.get(ijj).adjacencies.get(host_adj_list_cntr).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", HexString.toHexString(entry.getKey().getDst()) ), 1 ));
 								}
 							}
 							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 
 						}
 						
+						// NEED TO CONSTRUCT VERTEX OBJECTS FOR SWITCHES WITH NO HOST CONNECTIONS
+						// Iterate over links object
+							// If entry.getKey().getSrc() is NOT in any Host's Adjacency List
+								// Make a Vertex for it
+									// Scan through entire links object again, and add Edges
 						
+						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
+							int sthing;
+							for (sthing = 0; sthing < aryLines.length; sthing++){
+								if( hostVertices.get(sthing) != null ){
+									int hostAdjCntr;
+									int doNotAdd = 0;
+									for ( hostAdjCntr = 0; hostAdjCntr < hostVertices.get(sthing).adjacencies.size(); hostAdjCntr++){
+										if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVertices.get(sthing).adjacencies.get(hostAdjCntr).target.swID) ){
+											doNotAdd = 1;
+										}
+										if ( doNotAdd == 0){
+											Vertex newMetaSwitch = new Vertex("Switch", "-1", HexString.toHexString(entry.getKey().getSrc()));
+											List<Edge> metaAdjacencies = new ArrayList<Edge>();
+											for (Map.Entry<Link, LinkInfo> entry2: links.entrySet()){
+												if ( newMetaSwitch.swID.equals(HexString.toHexString(entry2.getKey().getSrc()))){
+													metaAdjacencies.add(new Edge( new Vertex("Switch", "-1", HexString.toHexString(entry2.getKey().getDst()) ), 1 ));
+												}
+											}
+											newMetaSwitch.adjacencies = metaAdjacencies;
+										}
+									}
+								}
+							}
+						}
 						// Checking to see if we avoid adding duplicates
 						//System.out.println("Adjacency list for: " + hostVerts_switch);
 						//System.out.println(hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies);
@@ -286,9 +338,9 @@ IFloodlightModule, IOFSwitchListener {
 					}
 				}
 			}
-			
+
 		}
-		
+
 
 
 		//System.out.println("After waiting for " + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
@@ -299,15 +351,15 @@ IFloodlightModule, IOFSwitchListener {
 		for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 		}
-		
+
 		System.out.println(this.linkDiscoverer.getLinks());
-*/
+		 */
 		/*System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
 
 	}
-/*
+	/*
 	public void bossModGenerator(--WhateverDjikstrasGivesMe--) {
 		//Needs to iterate over the following functionality for each entry in --WhateverDjikstrasGivesMe--
 		//Go through and clean up all the //needs replacing
@@ -355,7 +407,7 @@ IFloodlightModule, IOFSwitchListener {
 
 		}
 	}
-	*/
+	 */
 	public static void main(String[] args) throws FloodlightModuleException {
 
 		// Setup logger
@@ -497,7 +549,7 @@ IFloodlightModule, IOFSwitchListener {
 	public void startUp(FloodlightModuleContext context)
 			throws FloodlightModuleException {
 		// TODO Auto-generated method stub
-		
+
 		/*System.out.println("Inside startUp");
 		System.out.println("Inside startUp");
 		System.out.println("Inside startUp");*/
