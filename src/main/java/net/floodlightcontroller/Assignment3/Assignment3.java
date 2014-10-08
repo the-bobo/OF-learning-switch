@@ -53,6 +53,7 @@ IFloodlightModule, IOFSwitchListener {
 	protected static List<Vertex> hostVertices = new ArrayList<Vertex>(); 
 	protected static List<FullSwitchToHost> switchToHostWithPortInfo = new ArrayList<FullSwitchToHost>();
 	protected static List<Vertex> switchToHost = new ArrayList<Vertex>();
+	protected static List<Vertex> metaSwitches = new ArrayList<Vertex>();
 
 	@Override
 	public void init(FloodlightModuleContext context)
@@ -281,45 +282,64 @@ IFloodlightModule, IOFSwitchListener {
 
 						}
 						
+						// COULD PLACE THE CLOSING BRACKETS FOR ijj HERE
+					}
+				}
+						
 						// NEED TO CONSTRUCT VERTEX OBJECTS FOR SWITCHES WITH NO HOST CONNECTIONS
 						// Iterate over links object
 							// If entry.getKey().getSrc() is NOT in any Host's Adjacency List
 								// Make a Vertex for it
 									// Scan through entire links object again, and add Edges
-						
-						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
-							int sthing;
-							for (sthing = 0; sthing < aryLines.length; sthing++){
-								if( hostVertices.get(sthing) != null ){
-									int hostAdjCntr;
-									int doNotAdd = 0;
-									for ( hostAdjCntr = 0; hostAdjCntr < hostVertices.get(sthing).adjacencies.size(); hostAdjCntr++){
-										if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVertices.get(sthing).adjacencies.get(hostAdjCntr).target.swID) ){
-											doNotAdd = 1;
-										}
-										if ( doNotAdd == 0){
-											Vertex newMetaSwitch = new Vertex("Switch", "-1", HexString.toHexString(entry.getKey().getSrc()));
-											List<Edge> metaAdjacencies = new ArrayList<Edge>();
-											for (Map.Entry<Link, LinkInfo> entry2: links.entrySet()){
-												if ( newMetaSwitch.swID.equals(HexString.toHexString(entry2.getKey().getSrc()))){
-													metaAdjacencies.add(new Edge( new Vertex("Switch", "-1", HexString.toHexString(entry2.getKey().getDst()) ), 1 ));
-												}
-											}
-											newMetaSwitch.adjacencies = metaAdjacencies;
-										}
-									}
+
+				for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
+					int sthing;
+					int doNotAdd = 0;
+					for (sthing = 0; sthing < aryLines.length; sthing++){
+						if( hostVertices.get(sthing) != null ){
+							int hostAdjCntr;
+							for ( hostAdjCntr = 0; hostAdjCntr < hostVertices.get(sthing).adjacencies.size(); hostAdjCntr++){
+								if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVertices.get(sthing).adjacencies.get(hostAdjCntr).target.swID) ){
+									doNotAdd++;
+								}
+							}
+							int mSwitchCntr;
+							for (mSwitchCntr = 0; mSwitchCntr < metaSwitches.size(); mSwitchCntr++){
+								if (metaSwitches.get(mSwitchCntr).swID.equals(HexString.toHexString(entry.getKey().getSrc()))){
+									//System.out.println("=====***** doNotAdd is 1");
+									doNotAdd++;
 								}
 							}
 						}
+					}
+					if ( doNotAdd == 0 ){
+						Vertex newMetaSwitch = new Vertex("Switch", "-1", HexString.toHexString(entry.getKey().getSrc()));
+						List<Edge> metaAdjacencies = new ArrayList<Edge>();
+						for (Map.Entry<Link, LinkInfo> entry2: links.entrySet()){
+							if ( newMetaSwitch.swID.equals(HexString.toHexString(entry2.getKey().getSrc()))){
+								metaAdjacencies.add(new Edge( new Vertex("Switch", "-1", HexString.toHexString(entry2.getKey().getDst()) ), 1 ));
+							}
+						}
+						newMetaSwitch.adjacencies = metaAdjacencies;
+						metaSwitches.add(newMetaSwitch);
+					}
+				}
 						// Checking to see if we avoid adding duplicates
 						//System.out.println("Adjacency list for: " + hostVerts_switch);
 						//System.out.println(hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies);
-					}
-					//Now we need to do this again, but add Switch --> Host connections from switchToHost
-
-				}
-
 			}
+					//Now we need to do this again, but add Switch --> Host connections from switchToHost
+					// qxfo
+					/*
+					int unusedCntr;
+					for (unusedCntr = 0; unusedCntr < metaSwitches.size(); unusedCntr++){
+						//System.out.println("=====*****===== metaSwitch");
+						//System.out.println("The adjacencies of " + metaSwitches.get(unusedCntr) + " are: " + metaSwitches.get(unusedCntr).adjacencies);
+					}*/
+
+				//}
+
+			//}
 
 			// Pass to Djikstra's for calculating shortest path
 			// Djikstra's will need to run for every host in the network
@@ -338,6 +358,12 @@ IFloodlightModule, IOFSwitchListener {
 					}
 				}
 			}*/
+			
+			//System.out.println("Here is the size of metaSwitches: " + metaSwitches.size());
+			//System.out.println("Here is metaSwitches[0]: " + metaSwitches.get(0));
+			//System.out.println("Here is the adj list of metaSwitches[0]: " + metaSwitches.get(0).adjacencies);
+			//System.out.println("Here is metaSwitches[1]: " + metaSwitches.get(1));
+			//System.out.println("Here is metaSwitches[2]: " + metaSwitches.get(2));
 
 			// ============ TESTING DJIKSTRAS
 			int sourceVertex = 0;
