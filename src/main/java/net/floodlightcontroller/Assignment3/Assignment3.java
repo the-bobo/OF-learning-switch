@@ -61,9 +61,8 @@ IFloodlightModule, IOFSwitchListener {
 			throws FloodlightModuleException {
 
 		Map<String, String> configParams = context.getConfigParams(this);
-		String TopologyInfo = configParams.get("Topology Info");
+		//String TopologyInfo = configParams.get("Topology Info");
 		String NumSwitches = configParams.get("Num");
-		System.out.println("Here is what NumSwitches looks like: " + NumSwitches);
 		N = Integer.parseInt(NumSwitches); //NEEDS TO BE N = args[0] FOR COMMAND LINE TO WORK
 
 		// From Slides
@@ -76,6 +75,62 @@ IFloodlightModule, IOFSwitchListener {
 		this.linkDiscoverer = context.getServiceImpl(ILinkDiscoveryService.class);
 		this.linkDiscoverer.addListener(this);
 
+		// =========== FILE PARSING ================
+		
+		//GET INPUT FILE TO SCRUB HOST-->SWITCH CONNECTIONS FOR DJIKSTRA
+				//String file_name = args[1];
+				//String file_name = configParams.get("Topology Info"); //REPLACE WITH PATH TO FILE FROM COMMAND LINE ARG
+				String file_name = "./topologyinfo.txt";
+				System.out.println("====== HERE IS WHAT I GET FOR file_name " + file_name);
+				try{
+				ReadFile file = new ReadFile(file_name);
+				aryLines = file.OpenFile();
+				}
+				
+				catch (IOException f){
+					System.out.println(f.getMessage());
+					System.out.println("\n ERROR: First command line arg must be number of switches as a single integer");
+					System.out.println("\n ERROR: Second command line arg must be path to Input File with Host-->Switch topology \n");
+				}
+				
+				int iterator_counter;
+				for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
+					System.out.println(aryLines[iterator_counter]);
+				}
+
+				// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
+
+				for (String item : aryLines){
+					//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
+					//This stores our Vertices for Djikstras, but does not associate port info w/ switches
+					Scanner parsing = new Scanner(item);
+					Vertex newHost = new Vertex("Host", parsing.next(), (long)-1);
+					Vertex newSwitch = new Vertex("Switch", "-1", parsing.nextLong());
+					newHost.adjacencies = new Edge[]{
+							new Edge(newSwitch, 1)
+					};
+					hostVertices.add(newHost);
+				}
+				System.out.println("\n Here is what I get for hostVertices " + hostVertices);
+		/*		
+				for (String item: aryLines){
+					//This will tell us which Switches connect to which Hosts,
+					//along with the portInfo
+					Scanner parsing2 = new Scanner(item);
+					Vertex newTerminalHost = new Vertex("Host", parsing2.nextLong(), (long)-1); 
+					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.nextLong(), parsing2.nextShort(), newTerminalHost);
+					switchToHostWithPortInfo.add(newFullSwitchToHost);
+				}
+				
+				System.out.println("\n Here is what I get for switchToHostWithPortInfo " + switchToHostWithPortInfo);
+	*/			
+				// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
+				// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
+				
+				// THEN, DO IT AGAIN, BUT STORE PORT INFO
+
+		
+		
 		/*System.out.println("Inside init()");
 		System.out.println("Inside init()");
 		System.out.println("Inside init()");*/
@@ -133,7 +188,7 @@ IFloodlightModule, IOFSwitchListener {
 		System.out.println("Inside linkDiscoveryUpdate(List<LDUpdate> updateList)");*/
 
 	}
-
+/*
 	public void bossModGenerator(--WhateverDjikstrasGivesMe--) {
 		//Needs to iterate over the following functionality for each entry in --WhateverDjikstrasGivesMe--
 		//Go through and clean up all the //needs replacing
@@ -181,7 +236,7 @@ IFloodlightModule, IOFSwitchListener {
 
 		}
 	}
-	
+	*/
 	public static void main(String[] args) throws FloodlightModuleException {
 
 		// Setup logger
@@ -196,54 +251,6 @@ IFloodlightModule, IOFSwitchListener {
 			parser.printUsage(System.out);
 			System.exit(1);
 		}
-
-
-		//GET INPUT FILE TO SCRUB HOST-->SWITCH CONNECTIONS FOR DJIKSTRA
-		String file_name = args[1];
-		file_name = "./tilepuzinput.txt"; //REPLACE WITH PATH TO FILE FROM COMMAND LINE ARG
-		try{
-		ReadFile file = new ReadFile(file_name);
-		aryLines = file.OpenFile();
-		}
-		catch (IOException f){
-			System.out.println(f.getMessage());
-			System.out.println("\n ERROR: First command line arg must be number of switches as a single integer");
-			System.out.println("\n ERROR: Second command line arg must be path to Input File with Host-->Switch topology \n");
-		}
-		
-		int iterator_counter = 0;
-		for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
-			System.out.println(aryLines[iterator_counter]);
-		}
-
-		// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
-
-		
-		for (String item : aryLines){
-			//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
-			//This stores our Vertices for Djikstras, but does not associate port info w/ switches
-			Scanner parsing = new Scanner(item);
-			Vertex newHost = new Vertex("Host", parsing.nextLong(), (long)-1);
-			Vertex newSwitch = new Vertex("Switch", (long)-1, parsing.nextLong());
-			newHost.adjacencies = new Edge[]{
-					new Edge(newSwitch, 1)
-			};
-			hostVertices.add(newHost);
-		}
-		
-		for (String item: aryLines){
-			//This will tell us which Switches connect to which Hosts,
-			//along with the portInfo
-			Scanner parsing2 = new Scanner(item);
-			Vertex newTerminalHost = new Vertex("Host", parsing2.nextLong(), (long)-1); 
-			FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.nextLong(), parsing2.nextShort(), newTerminalHost);
-			switchToHostWithPortInfo.add(newFullSwitchToHost);
-		}
-		
-		// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
-		// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
-		
-		// THEN, DO IT AGAIN, BUT STORE PORT INFO
 
 		// Load modules
 		FloodlightModuleLoader fml = new FloodlightModuleLoader();
