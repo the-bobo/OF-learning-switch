@@ -58,6 +58,7 @@ class Edge
 	public final int weight; //edge weight - should just be 1 for all edges for us
 	public Edge(Vertex argTarget, int argWeight) //constructor for an Edge
 	{ target = argTarget; weight = argWeight; }
+	public String toString() { return "Target: " + target + " Weight: " + weight + "\n";}
 }
 public class Djikstras
 {

@@ -175,6 +175,7 @@ IFloodlightModule, IOFSwitchListener {
 		
 		if (this.linkDiscoverer.getLinks().size() == N){
 			links = this.linkDiscoverer.getLinks();
+			//System.out.println("Links is: " + links);
 
 			// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
 			// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
@@ -199,13 +200,16 @@ IFloodlightModule, IOFSwitchListener {
 						
 						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
-								// add the entry.getKey().getDst() to the adjacency list
-								hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", Objects.toString(entry.getKey().getDst()) ), 1 ));
+								// add the entry.getKey().getDst() to the adjacency list of the switch
+								hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", HexString.toHexString(entry.getKey().getDst()) ), 1 ));
 							}
 							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 
 						}
+						System.out.println("Adjacency list for: " + hostVerts_switch);
+						System.out.println(hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies);
 					}
+
 				}
 
 			}
