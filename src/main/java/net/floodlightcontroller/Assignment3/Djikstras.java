@@ -18,8 +18,9 @@ class Vertex implements Comparable<Vertex>
 	public final String type; // "Host" or "Switch"
 	public final String Host_IP_Addr; //if Host, this object has this, else -1 
 	public final String swID; //if Switch, this object has this, else -1
-	//public final short swPort; //if Switch, this object has this, else -1 
-	public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
+	//public final short swPort; //if Switch, this object has this, else -1
+	public List<Edge> adjacencies = new ArrayList<Edge>();
+	//public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
 							   //for DPID's it connects to, should contain their inPort
 	public double minDistance = Double.POSITIVE_INFINITY;
 	public Vertex previous; 
@@ -54,8 +55,8 @@ class Vertex implements Comparable<Vertex>
 class Edge
 {
 	public final Vertex target; //indicates the second member of the ordered vertex pair (vi,vj)
-	public final double weight; //edge weight - should just be 1 for all edges for us
-	public Edge(Vertex argTarget, double argWeight) //constructor for an Edge
+	public final int weight; //edge weight - should just be 1 for all edges for us
+	public Edge(Vertex argTarget, int argWeight) //constructor for an Edge
 	{ target = argTarget; weight = argWeight; }
 }
 public class Djikstras

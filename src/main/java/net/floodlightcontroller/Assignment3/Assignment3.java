@@ -114,9 +114,11 @@ IFloodlightModule, IOFSwitchListener {
 					String switchDPID = parsing.next();
 					switchDPID = switchDPID.substring(0, switchDPID.length()-1);
 					Vertex newSwitch = new Vertex("Switch", "-1", switchDPID);
-					newHost.adjacencies = new Edge[]{
-							new Edge(newSwitch, 1)
-					};
+					
+					List<Edge> edgeList = new ArrayList<Edge>();
+					edgeList.add(new Edge(newSwitch, 1));
+					newHost.adjacencies = edgeList;
+					
 					hostVertices.add(newHost);
 					parsing.close();
 				}
@@ -191,13 +193,14 @@ IFloodlightModule, IOFSwitchListener {
 				if( hostVertices.get(ijj) != null ){
 					
 					int counterthing;
-					for (counterthing = 0; counterthing < hostVertices.get(ijj).adjacencies.length; counterthing++){
+					for (counterthing = 0; counterthing < hostVertices.get(ijj).adjacencies.size(); counterthing++){
 						String hostVerts_switch; 
-						hostVerts_switch = hostVertices.get(ijj).adjacencies[counterthing].target.swID;
+						hostVerts_switch = hostVertices.get(ijj).adjacencies.get(counterthing).target.swID;
 						
 						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
-								System.out.println("this worked");
+								// add the entry.getKey().getDst() to the adjacency list
+								hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", Objects.toString(entry.getKey().getDst()) ), 1 ));
 							}
 							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 
