@@ -52,6 +52,7 @@ IFloodlightModule, IOFSwitchListener {
 	protected static String[] aryLines;
 	protected static List<Vertex> hostVertices = new ArrayList<Vertex>(); 
 	protected static List<FullSwitchToHost> switchToHostWithPortInfo = new ArrayList<FullSwitchToHost>();
+	protected static List<Vertex> switchToHost = new ArrayList<Vertex>();
 
 	@Override
 	public void init(FloodlightModuleContext context)
@@ -102,6 +103,7 @@ IFloodlightModule, IOFSwitchListener {
 				// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
 				String[] dummyAryLines = aryLines;
 				String[] dummyAryLines2 = aryLines;
+				String[] dummyAryLines3 = aryLines;
 				
 				for (String item : dummyAryLines){
 					//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
@@ -136,6 +138,26 @@ IFloodlightModule, IOFSwitchListener {
 					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(switchDPID2, Short.parseShort(parsing2.next()), newTerminalHost);
 					switchToHostWithPortInfo.add(newFullSwitchToHost);
 					parsing2.close();
+				}
+				
+				for (String item3: dummyAryLines3){
+					//this will tell us which Switches connect to which Hosts,
+					//without portInfo, so that we can run Djikstras on a full graph
+					Scanner parsing3 = new Scanner(item3);
+					String hostIP2 = parsing3.next();
+					hostIP2 = hostIP2.substring(0,hostIP2.length()-1);
+					Vertex newTerminalHost = new Vertex("Host", hostIP2, "-1");
+					String switchDPID2 = parsing3.next();
+					switchDPID2 = switchDPID2.substring(0, switchDPID2.length()-1);
+					Vertex newSwitchToHost = new Vertex("Switch", "-1", switchDPID2);
+					Short dummyDummy = Short.parseShort(parsing3.next()); // not sure what'll happen if i don't dispose of it 
+					//add newTerminalHost as an Edge in Vertex newSwitchToHost
+					List<Edge> edgeList2 = new ArrayList<Edge>();
+					edgeList2.add(new Edge(newTerminalHost, 1));
+					newSwitchToHost.adjacencies = edgeList2;
+					
+					switchToHost.add(newSwitchToHost);
+					parsing3.close();
 				}
 
 				/*System.out.println("Inside init()");
@@ -172,9 +194,11 @@ IFloodlightModule, IOFSwitchListener {
 	@Override
 	public void linkDiscoveryUpdate(List<LDUpdate> updateList) {
 		// THIS IS THE ONLY PLACE LINK UPDATES SEEM TO HAPPEN
-		
+		//int metaFlipBit = 0; //makes sure we run through this only once
+		//if (this.linkDiscoverer.getLinks().size() == N && metaFlipBit == 0){
 		if (this.linkDiscoverer.getLinks().size() == N){
 			links = this.linkDiscoverer.getLinks();
+			//metaFlipBit++;
 			//System.out.println("Links is: " + links);
 
 			// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
@@ -188,7 +212,7 @@ IFloodlightModule, IOFSwitchListener {
 			    Thread.currentThread().interrupt();
 			}*/
 
-			int ijj; //i have no idea what scope is like in java, so here's to random names for counters
+			int ijj; 
 			for (ijj = 0; ijj < aryLines.length; ijj++){
 				
 				if( hostVertices.get(ijj) != null ){
@@ -197,6 +221,22 @@ IFloodlightModule, IOFSwitchListener {
 					for (counterthing = 0; counterthing < hostVertices.get(ijj).adjacencies.size(); counterthing++){
 						String hostVerts_switch; 
 						hostVerts_switch = hostVertices.get(ijj).adjacencies.get(counterthing).target.swID;
+						
+						int cntrx;
+						for (cntrx = 0; cntrx < switchToHost.size(); cntrx++){
+							if ( hostVerts_switch.equals(switchToHost.get(cntrx)) ){
+								int second_cntr;
+								for (second_cntr = 0; second_cntr < switchToHost.get(cntrx).adjacencies.size(); second_cntr++){
+									hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(switchToHost.get(cntrx).adjacencies.get(second_cntr));
+								}
+							}
+						}
+						
+						// if swID == switchToHost.get(cntr).swID [[cntr iterates over switchToHost]] 
+						// then we know we're talking about the same Switch
+						// so add the Hosts this Switch connects to to its adjacency list
+						// hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(switchToHost.get(cntr).adjacencies.get(second_cntr); 
+						// second_cntr iterates over switchToHost.get(cntr).adjacencies.size();
 						
 						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
@@ -217,19 +257,39 @@ IFloodlightModule, IOFSwitchListener {
 							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 
 						}
-						System.out.println("Adjacency list for: " + hostVerts_switch);
-						System.out.println(hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies);
+						
+						
+						// Checking to see if we avoid adding duplicates
+						//System.out.println("Adjacency list for: " + hostVerts_switch);
+						//System.out.println(hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies);
 					}
+					//Now we need to do this again, but add Switch --> Host connections from switchToHost
 
 				}
 
 			}
 
+			// Pass to Djikstra's for calculating shortest path
+			// Djikstra's will need to run for every host in the network
+			// ======== RUNNING DJIKSTRAS =========
+			int djikCntr;
+			for (djikCntr = 0; djikCntr < hostVertices.size(); djikCntr++){
+				System.out.println("The adjacency list for hostVertices[" + djikCntr + "] is: " + hostVertices.get(djikCntr).adjacencies);
+				System.out.println("The adjacency list for the switch connected to hostVertices[" + djikCntr + "] is: " + hostVertices.get(djikCntr).adjacencies.get(0).target.adjacencies);
+				Djikstras.computePaths(hostVertices.get(djikCntr));
+				int djikCntr2;
+				System.out.println("hostVertices.size() is: " + hostVertices.size());
+				for (djikCntr2 = 0; djikCntr2 < hostVertices.size(); djikCntr2++){
+					if( djikCntr2 != djikCntr ){
+						//System.out.println("djikCntr is: " + djikCntr + " djikCntr2 is: " + djikCntr2);
+						System.out.println(Djikstras.getShortestPathTo(hostVertices.get(djikCntr2)));
+					}
+				}
+			}
+			
 		}
 		
 
-		// Pass to Djikstra's for calculating shortest path
-		// Djikstra's will need to run for every host in the network
 
 		//System.out.println("After waiting for " + N + " many links to come online, this is what linkDiscoverer returns in LIST<LDUpdate> : " + this.linkDiscoverer.getLinks());
 

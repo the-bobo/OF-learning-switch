@@ -70,16 +70,27 @@ public class Djikstras
 		while (!vertexQueue.isEmpty()) {
 			Vertex u = vertexQueue.poll();
 			// Visit each edge exiting u
-			for (Edge e : u.adjacencies)
+			int counter;
+			for (counter = 0; counter < u.adjacencies.size(); counter++)
+			//for (Edge e : u.adjacencies)
 			{
-				Vertex v = e.target;
-				double weight = e.weight;
+				Vertex v = u.adjacencies.get(counter).target;
+				double weight = (double)u.adjacencies.get(counter).weight;
 				double distanceThroughU = u.minDistance + weight;
 				if (distanceThroughU < v.minDistance) {
 					vertexQueue.remove(v);
 					v.minDistance = distanceThroughU ;
-					v.previous = u;
+					v.previous = u; //this is the problem line - we're just
+					//setting v.previous to u, since distanceThroughU is always 1
+					//which will always be < infinity
 					vertexQueue.add(v);
+				}
+				
+				if (v.type.equals("Host")){
+					int cntr2;
+					for (cntr2 = 0; cntr2 < v.adjacencies.size(); cntr2++){
+						vertexQueue.add(v.adjacencies.get(cntr2).target);
+					}
 				}
 			}
 		}
