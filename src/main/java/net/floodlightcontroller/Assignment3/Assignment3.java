@@ -201,7 +201,18 @@ IFloodlightModule, IOFSwitchListener {
 						for (Map.Entry<Link, LinkInfo> entry: links.entrySet()) {
 							if ( HexString.toHexString(entry.getKey().getSrc()).equals(hostVerts_switch) ){
 								// add the entry.getKey().getDst() to the adjacency list of the switch
-								hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", HexString.toHexString(entry.getKey().getDst()) ), 1 ));
+								// IF AND ONLY IF it doesn't already contain it
+								int flipBit = 0;
+								int iterator;
+								// check to see if we already have this entry in the adjacency list of the switch
+								for (iterator = 0; iterator < hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.size(); iterator++){
+									if ( hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.get(iterator).target.swID.equals(HexString.toHexString(entry.getKey().getDst())) ){
+										flipBit = 1;
+									}
+								}
+								if (flipBit == 0){
+									hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(new Edge(new Vertex( "Switch", "-1", HexString.toHexString(entry.getKey().getDst()) ), 1 ));
+								}
 							}
 							//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 
