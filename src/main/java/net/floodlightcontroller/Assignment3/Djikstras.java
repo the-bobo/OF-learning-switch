@@ -67,31 +67,47 @@ public class Djikstras
 		source.minDistance = 0.;
 		PriorityQueue<Vertex> vertexQueue = new PriorityQueue<Vertex>();
 		vertexQueue.add(source);
+		System.out.println("I have added this Vertex as my source: " + source);
 		while (!vertexQueue.isEmpty()) {
 			Vertex u = vertexQueue.poll();
+			System.out.println("I have pulled off vertex u from the queue: " + u);
 			// Visit each edge exiting u
 			int counter;
 			for (counter = 0; counter < u.adjacencies.size(); counter++)
-			//for (Edge e : u.adjacencies)
+				//for (Edge e : u.adjacencies)
 			{
-				Vertex v = u.adjacencies.get(counter).target;
-				double weight = (double)u.adjacencies.get(counter).weight;
-				double distanceThroughU = u.minDistance + weight;
-				if (distanceThroughU < v.minDistance) {
-					vertexQueue.remove(v);
-					v.minDistance = distanceThroughU ;
-					v.previous = u; //this is the problem line - we're just
-					//setting v.previous to u, since distanceThroughU is always 1
-					//which will always be < infinity
-					vertexQueue.add(v);
+				int keyBit = 1;
+				if (u.previous == null){
+					keyBit = 1;
+				}
+				if( u.previous != null 
+						&& u.adjacencies.get(counter).target.swID.equals(u.previous.swID)
+						&& u.adjacencies.get(counter).target.Host_IP_Addr.equals(u.previous.Host_IP_Addr)){
+					keyBit = 0;
+				}
+				if (keyBit == 1){
+					Vertex v = u.adjacencies.get(counter).target;
+					System.out.println("I am examining the edge v of u: " + v);
+					double weight = (double)u.adjacencies.get(counter).weight;
+					System.out.println("The weight of edge v is: " + weight);
+					double distanceThroughU = u.minDistance + weight;
+					System.out.println("The distanceThroughU of edge v is: " + distanceThroughU);
+					System.out.println("The v.minDistance of edge v is: " + v.minDistance);
+					if (distanceThroughU < v.minDistance) {
+						vertexQueue.remove(v);
+						v.minDistance = distanceThroughU ;
+						v.previous = u; //
+						vertexQueue.add(v);
+						System.out.println("I have added this vertex to the queue: " + v);
+					}
 				}
 				
-				if (v.type.equals("Host")){
+				/*if (v.type.equals("Host")){
 					int cntr2;
 					for (cntr2 = 0; cntr2 < v.adjacencies.size(); cntr2++){
 						vertexQueue.add(v.adjacencies.get(cntr2).target);
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -101,8 +117,10 @@ public class Djikstras
 	//should return a list of Switch DPID's terminating in a host IP
 	{
 		List<Vertex> path = new ArrayList<Vertex>(); //path is a list of Vertices
-		for (Vertex vertex = target; vertex != null; vertex = vertex.previous)
+		for (Vertex vertex = target; vertex != null; vertex = vertex.previous){
+			System.out.println("Here is the previous vertex I'm adding to the path: " + vertex);
 			path.add(vertex);
+		}
 		Collections.reverse(path);
 		return path;
 	}

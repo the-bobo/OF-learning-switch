@@ -324,7 +324,7 @@ IFloodlightModule, IOFSwitchListener {
 			// Pass to Djikstra's for calculating shortest path
 			// Djikstra's will need to run for every host in the network
 			// ======== RUNNING DJIKSTRAS =========
-			int djikCntr;
+			/*int djikCntr;
 			for (djikCntr = 0; djikCntr < hostVertices.size(); djikCntr++){
 				System.out.println("The adjacency list for hostVertices[" + djikCntr + "] is: " + hostVertices.get(djikCntr).adjacencies);
 				System.out.println("The adjacency list for the switch connected to hostVertices[" + djikCntr + "] is: " + hostVertices.get(djikCntr).adjacencies.get(0).target.adjacencies);
@@ -337,8 +337,23 @@ IFloodlightModule, IOFSwitchListener {
 						System.out.println(Djikstras.getShortestPathTo(hostVertices.get(djikCntr2)));
 					}
 				}
-			}
+			}*/
 
+			// ============ TESTING DJIKSTRAS
+			int sourceVertex = 0;
+			int nextVertex = 2;
+			
+			System.out.println("====== Going to do computePaths on source vertex hostVertices[" + sourceVertex + "]");
+			System.out.println("The v.minDistance of the vertex hostVertices[" + sourceVertex + "] is: " + hostVertices.get(sourceVertex).minDistance);
+			System.out.println("The v.minDistance of the switch of vertex hostVertices[" + sourceVertex + "] is: " + hostVertices.get(sourceVertex).adjacencies.get(0).target.minDistance);
+			Djikstras.computePaths(hostVertices.get(sourceVertex));
+			
+			/*
+			System.out.println("====== Going to do getShortestPathTo hostVertices[" + nextVertex + "]");
+			List<Vertex> path = new ArrayList<Vertex>();
+			path = Djikstras.getShortestPathTo(hostVertices.get(nextVertex));
+			System.out.println("Here is the result: " + path);
+			*/
 		}
 
 
