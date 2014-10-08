@@ -180,8 +180,7 @@ IFloodlightModule, IOFSwitchListener {
 
 		}
 	}
-
-
+	
 	public static void main(String[] args) throws FloodlightModuleException {
 
 		// Setup logger
@@ -226,12 +225,19 @@ IFloodlightModule, IOFSwitchListener {
 		
 		for (String item : aryLines){
 			//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
+			//This stores our Vertices for Djikstras, but does not associate port info w/ switches
 			Scanner parsing = new Scanner(item);
-			Vertex newHost = new Vertex("Host", parsing.nextLong(), (long)-1, (short)-1);
-			Vertex newSwitch = new Vertex("Switch", (long)-1, parsing.nextLong(), parsing.nextShort())
+			Vertex newHost = new Vertex("Host", parsing.nextLong(), (long)-1);
+			Vertex newSwitch = new Vertex("Switch", (long)-1, parsing.nextLong());
 			newHost.adjacencies = new Edge[]{
 					new Edge(newSwitch, 1)
 			};
+		}
+		
+		for (String item: aryLines){
+			Scanner parsing2 = new Scanner(item);
+			long dummyvar = parsing2.nextLong();
+			Vertex newFullSwitch = new Vertex("Switch", (long)-1, parsing.nextLong(), parsing.nextShort())
 		}
 
 
