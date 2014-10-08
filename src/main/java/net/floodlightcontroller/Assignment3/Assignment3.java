@@ -224,7 +224,7 @@ IFloodlightModule, IOFSwitchListener {
 						
 						int cntrx;
 						for (cntrx = 0; cntrx < switchToHost.size(); cntrx++){
-							if ( hostVerts_switch.equals(switchToHost.get(cntrx)) ){
+							if ( hostVerts_switch.equals(switchToHost.get(cntrx).swID) ){
 								int second_cntr;
 								for (second_cntr = 0; second_cntr < switchToHost.get(cntrx).adjacencies.size(); second_cntr++){
 									hostVertices.get(ijj).adjacencies.get(counterthing).target.adjacencies.add(switchToHost.get(cntrx).adjacencies.get(second_cntr));

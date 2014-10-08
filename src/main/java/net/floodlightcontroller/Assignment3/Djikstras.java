@@ -85,13 +85,13 @@ public class Djikstras
 					//which will always be < infinity
 					vertexQueue.add(v);
 				}
-				
+				/*
 				if (v.type.equals("Host")){
 					int cntr2;
 					for (cntr2 = 0; cntr2 < v.adjacencies.size(); cntr2++){
 						vertexQueue.add(v.adjacencies.get(cntr2).target);
 					}
-				}
+				}*/
 			}
 		}
 	}
