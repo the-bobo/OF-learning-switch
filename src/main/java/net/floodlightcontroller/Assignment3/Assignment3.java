@@ -53,7 +53,8 @@ IFloodlightModule, IOFSwitchListener {
 	protected int N; //will be used as number of switches in linkDiscoveryUpdate
 	protected static Logger log = LoggerFactory.getLogger(Assignment3.class);
 	protected static String[] aryLines;
-	protected Vertex [] hostVertices;
+	protected static List<Vertex> hostVertices = new ArrayList<Vertex>(); 
+	protected static List<FullSwitchToHost> switchToHostWithPortInfo = new ArrayList<FullSwitchToHost>();
 
 	@Override
 	public void init(FloodlightModuleContext context)
@@ -187,11 +188,6 @@ IFloodlightModule, IOFSwitchListener {
 		System.setProperty("org.restlet.engine.loggerFacadeClass", 
 				"org.restlet.ext.slf4j.Slf4jLoggerFacade");
 
-		// DEBUG STATEMENTS THAT WORK
-		// Both of these work
-		//System.out.println("Entering public static void main qqqq");
-		//log.error("Enteirng public static void main lllll");
-
 		CmdLineSettings settings = new CmdLineSettings();
 		CmdLineParser parser = new CmdLineParser(settings);
 		try {
@@ -232,15 +228,22 @@ IFloodlightModule, IOFSwitchListener {
 			newHost.adjacencies = new Edge[]{
 					new Edge(newSwitch, 1)
 			};
+			hostVertices.add(newHost);
 		}
 		
 		for (String item: aryLines){
+			//This will tell us which Switches connect to which Hosts,
+			//along with the portInfo
 			Scanner parsing2 = new Scanner(item);
-			long dummyvar = parsing2.nextLong();
-			Vertex newFullSwitch = new Vertex("Switch", (long)-1, parsing.nextLong(), parsing.nextShort())
+			Vertex newTerminalHost = new Vertex("Host", parsing2.nextLong(), (long)-1); 
+			FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.nextLong(), parsing2.nextShort(), newTerminalHost);
+			switchToHostWithPortInfo.add(newFullSwitchToHost);
 		}
-
-
+		
+		// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
+		// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
+		
+		// THEN, DO IT AGAIN, BUT STORE PORT INFO
 
 		// Load modules
 		FloodlightModuleLoader fml = new FloodlightModuleLoader();
