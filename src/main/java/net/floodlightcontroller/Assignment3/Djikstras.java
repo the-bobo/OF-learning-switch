@@ -17,19 +17,19 @@ class Vertex implements Comparable<Vertex>
 {
 	public final String type; // "Host" or "Switch"
 	public final String Host_IP_Addr; //if Host, this object has this, else -1 
-	public final long swID; //if Switch, this object has this, else -1
+	public final String swID; //if Switch, this object has this, else -1
 	//public final short swPort; //if Switch, this object has this, else -1 
 	public Edge[] adjacencies; //contains all IP's (hosts) and DPID's (switches) it connects to
 							   //for DPID's it connects to, should contain their inPort
 	public double minDistance = Double.POSITIVE_INFINITY;
 	public Vertex previous; 
-	public Vertex(String argName, String hostAddr, long switchID) { 
+	public Vertex(String argName, String hostAddr, String switchID) { 
 		type = argName; 
 		Host_IP_Addr = hostAddr; 
 		swID = switchID; 
 		//swPort = switchPort;
 		}
-	public String toString() { return "" + type + " " + "Host IP ADDR: " + Host_IP_Addr + " Switch DPID: " + swID + "\n"; }
+	public String toString() { return "Type: " + type + " " + "Host IP ADDR: " + Host_IP_Addr + " Switch DPID: " + swID + "\n"; }
 	public int compareTo(Vertex other)
 	{
 		return Double.compare(minDistance, other.minDistance);

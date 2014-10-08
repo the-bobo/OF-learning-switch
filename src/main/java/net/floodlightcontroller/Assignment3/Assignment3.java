@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.*;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -94,36 +95,42 @@ IFloodlightModule, IOFSwitchListener {
 				}
 				
 				int iterator_counter;
+				//String[][] elephantList = new String[][] { };
+				
 				for (iterator_counter = 0; iterator_counter < aryLines.length; iterator_counter++){
 					System.out.println(aryLines[iterator_counter]);
 				}
+				
+				
 
 				// PARSE THE FILE INPUT BY SPLITTING ON COMMAS, AND USING THAT TO CREATE VERTEX OBJECTS
-
-				for (String item : aryLines){
+				String[] dummyAryLines = aryLines;
+				String[] dummyAryLines2 = aryLines;
+				
+				for (String item : dummyAryLines){
 					//each item in the array is a String row: "10.0.0.1, 00:00:00...:01, 1"
 					//This stores our Vertices for Djikstras, but does not associate port info w/ switches
 					Scanner parsing = new Scanner(item);
-					Vertex newHost = new Vertex("Host", parsing.next(), (long)-1);
-					Vertex newSwitch = new Vertex("Switch", "-1", parsing.nextLong());
+					Vertex newHost = new Vertex("Host", parsing.next(), "-1");
+					Vertex newSwitch = new Vertex("Switch", "-1", parsing.next());
 					newHost.adjacencies = new Edge[]{
 							new Edge(newSwitch, 1)
 					};
 					hostVertices.add(newHost);
+					parsing.close();
 				}
-				System.out.println("\n Here is what I get for hostVertices " + hostVertices);
-		/*		
-				for (String item: aryLines){
+				System.out.println("Here is what I get for hostVertices " + hostVertices);
+
+				for (String item2: dummyAryLines2){
 					//This will tell us which Switches connect to which Hosts,
 					//along with the portInfo
-					Scanner parsing2 = new Scanner(item);
-					Vertex newTerminalHost = new Vertex("Host", parsing2.nextLong(), (long)-1); 
-					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.nextLong(), parsing2.nextShort(), newTerminalHost);
+					Scanner parsing2 = new Scanner(item2);
+					Vertex newTerminalHost = new Vertex("Host", parsing2.next(), "-1");
+					FullSwitchToHost newFullSwitchToHost = new FullSwitchToHost(parsing2.next(), Short.parseShort(parsing2.next()), newTerminalHost);
 					switchToHostWithPortInfo.add(newFullSwitchToHost);
+					parsing2.close();
 				}
 				
-				System.out.println("\n Here is what I get for switchToHostWithPortInfo " + switchToHostWithPortInfo);
-	*/			
 				// ITERATE THRU hostVertices ADJACENCY LISTS AND AUGMENT EACH SWITCH OBJECT'S ADJACENCY
 				// LIST WITH THE SWITCHES IT CONNECTS TO, BUT NO PORT INFO
 				

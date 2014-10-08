@@ -25,13 +25,15 @@ class FullSwitchNeighbor{ //is a list of neighboring switches for a given 'home'
 }
 
 class FullSwitchToHost{ //for a switch connecting to a host
-	public final long switchDPID_t; //same thing as above switchDPID, just uniquified name in case i need to in java...
+	public final String switchDPID_t; //same thing as above switchDPID, just uniquified name in case i need to in java...
 	public final short switchOutPort;
 	public final Vertex the_host_this_switch_knows;
 	
-	public FullSwitchToHost(long argDPID_t, short arg_switchOutPort, Vertex argHost){
+	public FullSwitchToHost(String argDPID_t, short arg_switchOutPort, Vertex argHost){
 		switchDPID_t = argDPID_t;
 		switchOutPort = arg_switchOutPort;
 		the_host_this_switch_knows = argHost;
 	}
+	
+	public String toString() { return "" + switchDPID_t + " " + switchOutPort + " " + the_host_this_switch_knows + "\n"; }
 }
